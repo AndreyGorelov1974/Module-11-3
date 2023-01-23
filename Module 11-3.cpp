@@ -37,9 +37,10 @@ a.b.c.d (посторонние символы вместо чисел и точ
 #include <iostream>
 #include <string>
 
-// функция вырезания части адреса до @, если @ нет возвращаем пустую строку
-std::string cut_name_post_box(std::string str) {
+// функция вырезания октета оп его номерн
+std::string cut_octet(std::string str, int number) {
 	std::string result = "";
+	int count = 1;
 	for (int i = 0; i < str.length(); i++) {
 		if (str[i] != '@') {
 			result += str[i];
@@ -51,74 +52,54 @@ std::string cut_name_post_box(std::string str) {
 	return result = "";
 }
 
-// функция вырезания части адреса после @, если @ нет возвращаем пустую строку
-std::string cut_domain_name(std::string str) {
-	std::string result = "";
-	bool find = false;
-	for (int i = 0; i < str.length(); i++) {
-		if (find) {
-			result += str[i];
-		}
-		if (str[i] == '@') {
-			find = true;
-		}
-	}
-	return result;
-}
-
-// функция проверки корректности, на вход подаём проверяемую строку, и строку-словарь разрешённых символов
-bool check_address(std::string checkStr, std::string passedStr) {
-	int checkStrLength = checkStr.length();
-	int passedStrLength = passedStr.length();
-
-	if (checkStr[0] == '.' || checkStr[checkStrLength - 1] == '.') {
+//функция проверки IP адреса
+bool check_IP(std::string checkAddress) {
+	//отсеваем IP c некорректной длиной, и начинающиеся и заканчивающиеся символом '.'
+	if (checkAddress.length() < 7 || checkAddress.length() > 15 || checkAddress[0] < '.' || checkAddress[checkAddress.length()-1] < '.') {
 		return false;
 	}
 
-	for (int i = 0; i < checkStrLength; i++) {
-		if (checkStr[i] == '.' && checkStr[i + 1] == '.' && i < (checkStrLength - 1)) {
+	//отсеваем IP c двумя символами '.' подряд, и неккоректными символами
+	for (int i = 0; i < checkAddress.length(); i++) {
+		if (checkAddress[i] == '.' && checkAddress[i + 1] == '.' && i < (checkAddress.length() - 1)) {
 			return false;
 		}
-
-		bool noFind = true;
-		for (int j = 0; j < passedStrLength && noFind; j++) {
-			if (checkStr[i] == passedStr[j]) {
-				noFind = false;
-			}
+		if (checkAddress[i] < '0' || checkAddress[i] > '9' || checkAddress[i] != '.') {
+			return false;
 		}
-		if (noFind) {
+	}
+
+	// проверяем корректность октетов
+	for (int i = 1; i <= 4; i++) {
+		std::string currentOctetStr = cut_octet(checkAddress, i);
+		int currentOctet = std::stoi(currentOctetStr);
+		// длина октета больше 3
+		if (currentOctetStr.length() > 3) {
+			return false;
+		}
+		// число меньше 0 или больше 255
+		if (currentOctet < 0 || currentOctet > 255) {
+			return false;
+		}
+		// ведущие нули для чисел 0-9
+		if (currentOctet >= 0 && currentOctet <= 9 && currentOctetStr.length() < 1) {
+			return false;
+		}
+		// ведущие нули для чисел 10-99
+
+		if (currentOctet >= 10 && currentOctet <= 99 && currentOctetStr.length() < 2) {
 			return false;
 		}
 	}
 	return true;
 }
 
-//функция проверки адреса почты
-bool check_email(std::string checkAddress) {
-	std::string namePostBox = cut_name_post_box(checkAddress);
-	std::string domainName = cut_domain_name(checkAddress);
-
-	if (namePostBox.length() < 1 || namePostBox.length() > 64 || domainName.length() < 1 || domainName.length() > 63) {
-		return false;
-	}
-	//строки разрешённых символов
-	std::string passedSymbolNamePostBox = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.!#$%&'*+-/=?^_`{|}~";
-	std::string passedSymbolDomainName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.";
-
-	return check_address(namePostBox, passedSymbolNamePostBox) && check_address(domainName, passedSymbolDomainName) ? true : false;
-}
-
 
 
 int main() {
-	std::string emailAddress;
-	std::cout << "Enter email address: ";
-	std::cin >> emailAddress;
-
-	while (emailAddress.length() > 128) {
-		std::cout << "The email address is too long, enter again: ";
-		std::cin >> emailAddress;
-	}
-
-	std::cout << std::endl << (check_email(emailAddress) ? "Yes" : "No");
+	std::string IPAddress;
+	std::cout << "Enter IP address: ";
+	std::cin >> IPAddress;
+	
+	std::cout << (check_IP(IPAddress) ? "Valid" : "Invalid");
 }
