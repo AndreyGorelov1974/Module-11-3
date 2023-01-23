@@ -37,34 +37,37 @@ a.b.c.d (посторонние символы вместо чисел и точ
 #include <iostream>
 #include <string>
 
-// функция вырезания октета оп его номерн
+// функция вырезания октета по его номеру
 std::string cut_octet(std::string str, int number) {
-	std::string result = "";
+	std::string result;
+	//начальный номер
 	int count = 1;
 	for (int i = 0; i < str.length(); i++) {
-		if (str[i] != '@') {
+		//если номера совпали начинаем вырезать
+		if (count == number && str[i] != '.') {
 			result += str[i];
 		}
-		else {
-			return result;
+		// дошли до точки увеличиваем номер что бы больше не резать
+		if (str[i] == '.') {
+			count++;
 		}
 	}
-	return result = "";
+	return result;
 }
 
 //функция проверки IP адреса
 bool check_IP(std::string checkAddress) {
 	//отсеваем IP c некорректной длиной, и начинающиеся и заканчивающиеся символом '.'
-	if (checkAddress.length() < 7 || checkAddress.length() > 15 || checkAddress[0] < '.' || checkAddress[checkAddress.length()-1] < '.') {
+	if (checkAddress.length() < 7 || checkAddress.length() > 15 || checkAddress[0] == '.' || checkAddress[checkAddress.length()-1] == '.') {
 		return false;
 	}
 
 	//отсеваем IP c двумя символами '.' подряд, и неккоректными символами
 	for (int i = 0; i < checkAddress.length(); i++) {
-		if (checkAddress[i] == '.' && checkAddress[i + 1] == '.' && i < (checkAddress.length() - 1)) {
+		if (i < (checkAddress.length() - 1) && checkAddress[i] == '.' && checkAddress[i + 1] == '.') {
 			return false;
 		}
-		if (checkAddress[i] < '0' || checkAddress[i] > '9' || checkAddress[i] != '.') {
+		if ((checkAddress[i] < '0' || checkAddress[i] > '9') && checkAddress[i] != '.') {
 			return false;
 		}
 	}
@@ -82,12 +85,11 @@ bool check_IP(std::string checkAddress) {
 			return false;
 		}
 		// ведущие нули для чисел 0-9
-		if (currentOctet >= 0 && currentOctet <= 9 && currentOctetStr.length() < 1) {
+		if (currentOctet >= 0 && currentOctet <= 9 && currentOctetStr.length() != 1) {
 			return false;
 		}
 		// ведущие нули для чисел 10-99
-
-		if (currentOctet >= 10 && currentOctet <= 99 && currentOctetStr.length() < 2) {
+		if (currentOctet >= 10 && currentOctet <= 99 && currentOctetStr.length() != 2) {
 			return false;
 		}
 	}
